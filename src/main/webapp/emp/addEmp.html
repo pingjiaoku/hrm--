@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <title>页面布局2</title>
+    <script src="../js/jQuery.js"></script>
+    <script src="../js/axios.js"></script>
+    <script src="../js/public.js"></script>
+    <script src="../js/province_city_list.js"></script>
+    <link rel="stylesheet" href="../css/addEml.css">
+</head>
+<script>
+    let t = [];
+    let postList;
+
+    function writeDeptBox(data) {
+        let j = 0;
+        for (let i in data) {
+            t[j] = [i,data[i]]
+            j++;
+        }
+    }
+
+    $(document).ready(function () {
+        // 先获取岗位id和名称，这里用处，通过id获取岗位名称
+        $.ajax({
+            type: "post",
+            async: false,
+            url: getProjectPath() + "/getPostName",
+            success: function (resp) {
+                postList = eval(resp);
+            }
+        })
+
+        // 获取部门和其下的岗位id
+        $.ajax({
+            type: "post",
+            async: false,
+            url: getProjectPath() + "/getDepPostBox",
+            success: function (resp) {
+                writeDeptBox(eval(resp));
+            }
+        })
+
+        // 获取部门id和name，先生成部门下拉框
+        $.ajax({
+            type: "post",
+            async: false,
+            url: getProjectPath() + "/getDeptBox",
+            success: function (resp) {
+                let data = eval(resp);
+                for (let j = 0; j < data.length; j++) {
+                    $("#department").append("<option value='" + data[j]["depID"] + "'>" + data[j]["depName"] + "</option>");
+                }
+            }
+        })
+
+        // 部门下拉框选择变化时，改变岗位下拉框
+        $("#department").change(function () {
+            let department = $(this).val();
+            setPost(department);
+        });
+
+        // 省份下拉框变化时，改变城市下拉框
+        $("#pro").change(function () {
+            let pro = $(this).val();
+            setCity(pro);
+        });
+    });
+
+    // 生成岗位下拉框
+    function setPost(department){
+        let i, j, tmpPost = [];
+        for (i = 0; i < t.length; i++) {
+            if (department == t[i][0].toString()) {
+                $("#post").html(""); // 清空岗位下拉框
+                if(t[i][1] !== "") {
+                    tmpPost = t[i][1].split("|");
+                    for (j = 0; j < tmpPost.length; j++) {
+                        $("#post").append("<option value='" + tmpPost[j] + "'>" + getPost(tmpPost[j]) + "</option>");
+                    }
+                } else {
+
+                    $("#post").append("<option value='0'>-无岗位-</option>");
+                }
+            }
+        }
+    }
+
+    function getPost(id) {
+        for (let i = 0; i < postList.length; i++) {
+            if(postList[i]["id"] == id)
+                return postList[i]["name"];
+        }
+
+    }
+
+    // 生成城市下拉框
+    function setCity(pro){
+        let i, j, tmpCity = [];
+        for (i = 0; i < sf.length; i++) {
+            if (pro == sf[i][0].toString()) {
+                tmpCity = sf[i][1].split("|");
+                $("#city").html("");
+                for (j = 0; j < tmpCity.length; j++) {
+                    $("#city").append("<option>" + tmpCity[j] + "</option>");
+                }
+            }
+        }
+    }
+</script>
+<body>
+<div class="form-div">
+    <form id="reg-form" action="#" method="post">
+        <table>
+            <tr>
+                <td class="litTit">基本信息</td>
+            </tr>
+            <tr>
+                <td>姓名</td>
+                <td>
+                    <input type="text" name="name" id="name" value="" maxlength="10" placeholder="必填">
+                    <span id="name_err" class="err_msg" style="display: none">姓名应为2~10个汉字</span>
+                </td>
+                <td>性别</td>
+                <td>
+                    <select name="gender" id="gender" size="1">
+                        <option value="1">男</option>
+                        <option value="2">女</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>账号</td>
+                <td class="inputs">
+                    <input type="text" name="account" id="account" value="" maxlength="20" placeholder="必填">
+                    <span id="account_err" class="err_msg" style="display: none">账号应为6~20个字符，不包含特殊字符</span>
+                    <span id="account_exist" class="err_msg" style="display: none">账号已存在</span>
+                </td>
+                <td>密码</td>
+                <td class="inputs">
+                    <input type="text" name="pwd" id="pwd" value="" maxlength="20" placeholder="必填">
+                    <span id="password_err" class="err_msg" style="display: none">密码应为6~20个字符，不包含特殊字符</span>
+                </td>
+            </tr>
+            <tr>
+                <td>政治面貌</td>
+                <td class="else">
+                    <select name="politics" id="politics" size='1'>
+                        <option value='1'>共产党员</option>
+                        <option value='2'>中共预备党员</option>
+                        <option value='3'>共青团员</option>
+                        <option value='4'>民主党派</option>
+                        <option value='5'>群众</option>
+                    </select>
+                </td>
+                <td>年龄</td>
+                <td class="inputs">
+                    <input type="text" name="age" id="age" value="" maxlength="2" placeholder="必填">
+                    <span id="age_err" class="err_msg" style="display: none">年龄应为两位数字</span>
+                </td>
+            </tr>
+            <tr>
+                <td>毕业学校</td>
+                <td class="inputs">
+                    <input type="text" name="school" id="school" value="" maxlength="15">
+                    <span id="school_err" class="err_msg" style="display: none">毕业学校应为15个字符以内</span>
+                </td>
+                <td>学历</td>
+                <td class="else">
+                    <select name="edu" id="edu" size='1'>
+                        <option value='1'>高中</option>
+                        <option value='2'>专科</option>
+                        <option value='3'>本科</option>
+                        <option value='4'>硕士</option>
+                        <option value='5'>博士</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td class="litTit">联系信息</td>
+            </tr>
+            <tr>
+                <td>电话</td>
+                <td class="inputs">
+                    <input type="text" name="tel" id="tel" value="" maxlength="11" placeholder="必填">
+                    <span id="tel_err" class="err_msg" style="display: none">电话号码应为11位数字</span>
+                </td>
+                <td>邮箱</td>
+                <td class="inputs">
+                    <input type="text" name="emil" id="emil" value="" maxlength="30">
+                    <span id="emil_err" class="err_msg" style="display: none">不是有效邮箱</span>
+                </td>
+            </tr>
+            <tr>
+                <td>家庭住址</td>
+                <td class="else">
+                    <select id="pro" name="pro">
+                        <option>-请选择-</option>
+                        <option>北京市</option>
+                        <option>上海市</option>
+                        <option>天津市</option>
+                        <option>重庆市</option>
+                        <option>河北省</option>
+                        <option>山西省</option>
+                        <option>内蒙古自治区</option>
+                        <option>辽宁省</option>
+                        <option>吉林省</option>
+                        <option>黑龙江省</option>
+                        <option>江苏省</option>
+                        <option>浙江省</option>
+                        <option>安徽省</option>
+                        <option>福建省</option>
+                        <option>江西省</option>
+                        <option>山东省</option>
+                        <option>河南省</option>
+                        <option>湖北省</option>
+                        <option>湖南省</option>
+                        <option>广东省</option>
+                        <option>广西壮族自治区</option>
+                        <option>海南省</option>
+                        <option>四川省</option>
+                        <option>贵州省</option>
+                        <option>云南省</option>
+                        <option>西藏自治区</option>
+                        <option>陕西省</option>
+                        <option>甘肃省</option>
+                        <option>宁夏回族自治区</option>
+                        <option>青海省</option>
+                        <option>新疆维吾尔族自治区</option>
+                        <option>香港特别行政区</option>
+                        <option>澳门特别行政区</option>
+                        <option>台湾省</option>
+                        <option>其它</option>
+                    </select>
+                </td>
+                <td></td>
+                <td>
+                    <select id="city" name="city">
+                        <option>城市</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>详细住址</td>
+                <td colspan="3">
+                    <input type="text" name="address" id="address" value="" maxlength="30" style="width: 94%;">
+                </td>
+            </tr>
+            <tr>
+                <td class="litTit">任职信息</td>
+            </tr>
+            <tr>
+                <td>部门</td>
+                <td class="else">
+                    <select name="department" id="department" size='1'>
+                        <option value="0">-请选择-</option>
+                    </select>
+                </td>
+                <td>岗位</td>
+                <td class="else">
+                    <select name="post" id="post" size='1'>
+                        <option value="0">-先选择部门-</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>职称</td>
+                <td class="else">
+                    <select name="title" id="title" size='1'>
+                    </select>
+                </td>
+                <td>状态</td>
+                <td class="else">
+                    <select name="status" id="status" size='1'>
+                        <option value='1'>试用</option>
+                        <option value='2'>转正</option>
+                        <option value='3'>挂靠</option>
+                        <option value='4'>自动离职</option>
+                        <option value='5'>辞退</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>薪水</td>
+                <td colspan="3">
+                    <input type="text" name="salary" id="salary" value="" maxlength="7" style="width: 94%;"
+                           placeholder="必填">
+                    <span id="salary_err" class="err_msg" style="display: none">薪水应为7位以内的数字</span>
+                </td>
+            </tr>
+
+        </table>
+        <div class="buttons">
+            <input value="提 交" type="button" class="reg_btn" id="submit">
+            <input value="取 消" type="button" class="reg_btn" id="cancel">
+        </div>
+    </form>
+</div>
+
+</body>
+<script>
+
+    // 标记添加还是修改，true：添加，false：修改
+    var flagAddOrEdit = true;
+
+    // 存放职称信息，用于生成职称下拉框
+    var dataTitle;
+
+    window.onload = function () {
+        // 通过url参数判断该页面是修改还是添加
+        let id = getParam("id");
+        if (id == null) {
+            flagAddOrEdit = true;
+        } else {
+            // 为修改页面时，调用为表单填充数据的函数
+            flagAddOrEdit = false;
+            EditData(id);
+        }
+
+        // 获取职称信息
+        $.ajax({
+            type:"post",
+            async: false,
+            url:getProjectPath() + "/titleBox",
+            success: function (resp){
+                WriteTitleBox(eval(resp));
+            }
+        })
+    }
+
+
+
+    // 获取对应的id的用户信息
+    function EditData(id) {
+        axios({
+            method: "post",
+            url: getProjectPath() + "/empInfo",
+            params: {
+                'id': id
+            }
+        }).then(function (resp) {
+            // 填充信息
+            showEdit(resp.data)
+            $("#account").attr("disabled","disabled");
+            // setAttr();
+        })
+    }
+
+    // 为普通用户时，任职信息不能修改
+    function setAttr() {
+        $("#department, #title, #title, #post, #status, #salary").attr("disabled","disabled");
+    }
+
+    // 为修改表单填充信息
+    function showEdit(data) {
+        $("#name").val(data["name"]);
+        $("#gender").val(data["gender"]);
+        $("#account").val(data["account"]);
+        $("#pwd").val(data["password"]);
+        $("#age").val(data["age"]);
+        $("#politics").val(data["politics"]);
+        $("#edu").val(data["eduLevel"]);
+        $("#school").val(data["school"]);
+        $("#tel").val(data["telNum"]);
+        $("#emil").val(data["emil"]);
+        $("#address").val(data["address"]);
+        $("#department").val(data["deptId"]);
+        // $("#post").val(data["postId"]);
+        writePost(data["deptId"], data["postId"]);
+        $("#title").val(data["titleId"]);
+        $("#status").val(data["status"]);
+        $("#salary").val(data["salary"]);
+        writeProCity(data["pro"], data["city"]);
+    }
+
+    function writePost(department,post) {
+        // 先生成岗位下拉框
+        setPost(department);
+        // 再设置值
+        $("#post").val(post)
+    }
+
+    function writeProCity(pro,city) {
+        let proWrite = document.getElementById('pro');
+        $.each(proWrite.options, function (m, n) {
+            if (n.value === pro) {
+                n.selected = true;
+                setCity(pro);
+                $("#city").val(city)
+            }
+        });
+    }
+
+    // 验证姓名为汉字
+    let name = document.getElementById("name");
+    name.onblur = checkName;
+    function checkName() {
+        let t = /^[\u4e00-\u9fa5]{2,10}$/;
+        let flag = t.test(name.value);
+        if (flag) {
+            document.getElementById("name_err").style.display = "none";
+        } else {
+            document.getElementById("name_err").style.display = "";
+        }
+        return flag;
+    }
+
+    // 验证账号，添加时才验证，修改不能
+    let acc = document.getElementById("account");
+    acc.onblur = checkAcc;
+    function checkAcc() {
+        // 为添加页面时，验证
+        if(flagAddOrEdit) {
+            let t = /^\w{6,20}$/;
+            let flag = t.test(acc.value);
+            if (flag) {
+                document.getElementById("account_err").style.display = "none";
+            } else {
+                document.getElementById("account_err").style.display = "";
+            }
+            // 检查是否账号已存在
+            $.ajax({
+                type: "post",
+                async: false,//关键是这个参数 是否异步请求=>false:使用同步请求
+                url: getProjectPath() + "/accExist",
+                data: {
+                    'account': acc.value
+                },
+                success: function (data) {
+                    if (data == "1") {
+                        alert("账号已存在，请另外输入一个账号");
+                        document.getElementById("account_exist").style.display = "";
+                        flag = false;
+                    } else {
+                        document.getElementById("account_exist").style.display = "none";
+                    }
+                }
+            })
+            return flag;
+        }
+    }
+
+    // 验证密码
+    let pwd = document.getElementById("pwd");
+    pwd.onblur = checkPwd;
+    function checkPwd() {
+        let t = /^\w{6,20}$/;
+        let flag = t.test(pwd.value);
+        if (flag) {
+            document.getElementById("password_err").style.display = "none";
+        } else {
+            document.getElementById("password_err").style.display = "";
+        }
+
+        return flag;
+    }
+
+    // 验证薪水
+    let salary = document.getElementById("salary");
+    salary.onblur = checkSalary;
+    function checkSalary() {
+        let t = /^\d{1,7}$/;
+        let flag = t.test(salary.value);
+        if (flag) {
+            document.getElementById("salary_err").style.display = "none";
+        } else {
+            document.getElementById("salary_err").style.display = "";
+        }
+
+        return flag;
+    }
+
+    // 验证电话
+    let tel = document.getElementById("tel");
+    tel.onblur = checkTel;
+    function checkTel() {
+        let t = /^[1][0-9]{10}$/;
+        let flag = t.test(tel.value);
+        if (flag) {
+            document.getElementById("tel_err").style.display = "none";
+        } else {
+            document.getElementById("tel_err").style.display = "";
+        }
+        return flag;
+    }
+
+    // 验证年龄
+    let age = document.getElementById("age");
+    age.onblur = checkAge;
+    function checkAge() {
+        let t = /^\d{2}$/;
+        let flag = t.test(age.value);
+        if (flag) {
+            document.getElementById("age_err").style.display = "none";
+        } else {
+            document.getElementById("age_err").style.display = "";
+        }
+        return flag;
+    }
+
+    // 验证邮箱
+    let emil = document.getElementById("emil");
+    emil.onblur = checkEmil;
+    function checkEmil() {
+        let t = /^[a-zA-Z_0-9]{4,20}@[a-zA-Z_.0-9]{0,10}$/;
+        let flag = t.test(emil.value);
+        // 邮箱为选填项，若没有输入东西时就不验证
+        if (emil.value === "") {
+            flag = true;
+        }
+        if (flag) {
+            document.getElementById("emil_err").style.display = "none";
+        } else {
+            document.getElementById("emil_err").style.display = "";
+        }
+
+        return flag;
+    }
+
+    function checkDept() {
+        if($("#department").val() === 0) {
+            alert("所属部门未选择")
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    function checkPost() {
+        if($("#post").val() === 0) {
+            alert("所属岗位未选择")
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    // 选择提交方式，添加还是修改
+    let sub = document.getElementById("submit");
+    sub.onclick = Submit;
+    function Submit(){
+        if(flagAddOrEdit){
+            addEmp();
+        }else {
+            editEmp();
+        }
+    }
+
+    // 添加信息
+    function addEmp() {
+        // 添加前需验证数据
+        let flag = checkName() && checkAcc() && checkPwd() && checkTel() && checkAge() && checkEmil() && checkSalary() && checkDept() && checkPost();
+        if (flag) {
+            if (confirm("确认添加该员工信息吗？")) {
+                axios({
+                    method: "post",
+                    url: getProjectPath() + "/addEmp",
+                    params: {
+                        'account': acc.value,
+                        'password': pwd.value,
+                        'name': name.value,
+                        'salary': salary.value,
+                        'tel': tel.value,
+                        'emil': emil.value,
+                        'age': age.value,
+                        'pro': getPro(),
+                        'city': getCity(),
+                        'address': document.getElementById("address").value,
+                        'school': document.getElementById("school").value,
+                        'gender': document.getElementById("gender").value,
+                        'eduLevel': document.getElementById("edu").value,
+                        'politics': document.getElementById("politics").value,
+                        'status': document.getElementById("status").value,
+                        'department': document.getElementById("department").value,
+                        'title': document.getElementById("title").value,
+                        'post': document.getElementById("post").value,
+                    }
+                }).then(function (resp) {
+                    if (resp.data == "0") {
+                        alert("添加失败");
+                    } else {
+                        alert("添加成功");
+                        location.href="AllEmp.html";
+                    }
+                })
+            }
+        }
+    }
+
+    function getPro(){
+        let pro = document.getElementById("pro");
+        if(pro.value == "-请选择-"){
+            return "";
+        }else{
+            return pro.value;
+        }
+    }
+    function getCity(){
+        let city = document.getElementById("city");
+        if(city.value == "城市"){
+            return "";
+        }else{
+            return city.value;
+        }
+    }
+
+    // 修改信息
+    function editEmp() {
+        // 提交修改前，需验证数据
+        let flag = checkName() && checkPwd() && checkTel() && checkAge() && checkEmil() && checkSalary();
+        if (flag) {
+            if (confirm("确认修改信息吗？")) {
+                axios({
+                    method: "post",
+                    url: getProjectPath() + "/editEmp",
+                    params: {
+                        'id':getParam("id"),
+                        'password': pwd.value,
+                        'name': name.value,
+                        'tel': tel.value,
+                        'emil': emil.value,
+                        'age': age.value,
+                        'pro': getPro(),
+                        'city': getCity(),
+                        'address': document.getElementById("address").value,
+                        'school': document.getElementById("school").value,
+                        'gender': document.getElementById("gender").value,
+                        'eduLevel': document.getElementById("edu").value,
+                        'politics': document.getElementById("politics").value,
+                        'status': document.getElementById("status").value,
+                        'department': document.getElementById("department").value,
+                        'title': document.getElementById("title").value,
+                        'post': document.getElementById("post").value,
+                        'salary': document.getElementById("salary").value
+                    }
+                }).then(function (resp) {
+                    if (resp.data == "0") {
+                        alert("修改失败");
+                    } else {
+                        alert("修改成功");
+                        location.href="AllEmp.html";
+                    }
+                })
+            }
+        }
+    }
+
+    document.getElementById("cancel").onclick = function () {
+        location.href="AllEmp.html";
+    }
+</script>
+</html>

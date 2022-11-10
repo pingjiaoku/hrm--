@@ -1,0 +1,22 @@
+.td8 {
+	BACKGROUND-COLOR: #f1fbf1; BORDER-BOTTOM: #a1a1a1 1pt solid
+}
+BODY {
+	COLOR: #000000; FONT-FAMILY: 宋体; FONT-SIZE: 9pt
+}
+TD {
+	FONT-FAMILY: 宋体; FONT-SIZE: 13pt; LINE-HEIGHT: 26pt
+}
+
+A:link {
+	COLOR: white; TEXT-DECORATION: none
+}
+A:visited {
+	COLOR: white; TEXT-DECORATION: none
+}
+A:active {
+	COLOR: #5b2222;TEXT-DECORATION: underline
+}
+A:hover {
+	TEXT-DECORATION: underline
+}

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="../js/jQuery.js"></script>
+    <script src="../js/axios.js"></script>
+    <script src="../js/public.js"></script>
+    <link rel="stylesheet" href="../css/addTitle.css">
+    <title>Title</title>
+</head>
+<body>
+<div class="form-div">
+    <form id="reg-form" action="#" method="post">
+        <table>
+            <tr>
+                <td class="litTit">职称信息添加</td>
+            </tr>
+            <tr>
+                <td>职称名称</td>
+                <td>
+                    <input type="text" name="name" id="name" value="" maxlength="15" placeholder="必填">
+                    <span id="name_err" class="err_msg" style="display: none">职称名称应为2~15个汉字</span>
+                    <span id="name_exist" class="err_msg" style="display: none">职称名称已存在</span>
+                </td>
+            </tr>
+            <tr>
+                <td>职称等级</td>
+                <td class="else">
+                    <select name="rank" id="rank" size="1">
+                        <option value="1">正高职称</option>
+                        <option value="2">副高职称</option>
+                        <option value="3">中级职称</option>
+                        <option value="4">初级职称</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>职称描述</td>
+                <td>
+                    <textarea cols="26" rows="5" class="textarea" id="describe" name="describe"></textarea>
+                    <span id="des_err" class="err_msg" style="display: none">职称描述字数不能超过200</span>
+                </td>
+            </tr>
+
+        </table>
+        <div class="buttons">
+            <input value="提 交" type="button" class="reg_btn" id="submit">
+            <input value="取 消" type="button" class="reg_btn" id="cancel">
+        </div>
+    </form>
+</div>
+<script>
+        let name = document.getElementById("name");
+        let rank = document.getElementById("rank");
+        let des = document.getElementById("describe");
+
+        name.onblur = checkName;
+        function checkName() {
+            let test = /^\S{2,15}$/;
+            let flag = test.test(name.value);
+            if(flag){
+                document.getElementById("name_err").style.display = "none";
+            } else {
+                document.getElementById("name_err").style.display = "";
+                return false;
+            }
+
+            $.ajax({
+                type:"post",
+                async: false,
+                url: getProjectPath() + "/titleNameExist",
+                data:{
+                    "name":name.value
+                },
+                success: function (data){
+                    if(data == 0){
+                        document.getElementById("name_exist").style.display = "none";
+                    } else {
+                        document.getElementById("name_exist").style.display = "";
+                        flag = false;
+                    }
+                }
+            })
+
+            return flag;
+        }
+
+        des.onblur = checkDes;
+        function checkDes() {
+            let test = /^\S{0,200}$/;
+            let flag = test.test(des.value)
+            if(flag){
+                document.getElementById("des_err").style.display = "none";
+            } else {
+                document.getElementById("des_err").style.display = "";
+            }
+            return flag;
+        }
+
+        document.getElementById("submit").onclick = function () {
+            let flag = checkName() && checkDes();
+            if(flag){
+                if(confirm("确认添加该职称信息吗")) {
+                    $.ajax({
+                        type: "post",
+                        url: getProjectPath() + "/addTitle",
+                        data: {
+                            'name': name.value,
+                            'rank': rank.value,
+                            'describe': des.value
+                        },
+                        success: function (resp) {
+                            if (resp == "true") {
+                                alert("添加成功");
+                                location.href = "titleList.html";
+                            } else {
+                                alert("添加失败");
+                            }
+                        }
+                    })
+                }
+            }
+        }
+
+        document.getElementById("cancel").onclick = function () {
+            location.href = "titleList.html";
+        }
+</script>
+</body>
+</html>

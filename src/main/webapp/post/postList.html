@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="../css/hrms.css">
+    <script src="../js/axios.js"></script>
+    <script src="../js/jQuery.js"></script>
+    <script src="../js/public.js"></script>
+    <script src="../js/allEmp.js"></script>
+</head>
+<script>
+
+    window.onload = ShowList;
+    function ShowList() { // 从后端获取岗位信息列表
+        axios({
+            method: "post",
+            url: getProjectPath() + "/allPost"
+        }).then(function (resp) {
+            WriteList(resp.data) // 将数据通过该函数写入到页面中
+        })
+
+    }
+
+    // 显示岗位数据 （拼接html代码字符串，将字符串注入到一个标签中）
+    function WriteList(postList) {
+        let strHtml = "";
+        if (postList == "") {
+        } else {
+            let manager = localStorage.getItem("manager");
+            strHtml += "<table width=\"100%\"  border=\"0\" cellpadding=\"0\" cellspacing=\"0\" align=\"center\">	";
+            for (let i = 0; i < postList.length; i++) {
+                strHtml += "<tr class=\"td_" + (i % 2 + 1) + "\">";
+                strHtml += "<td width=\"10%\">" + postList[i]["id"] + "</td>";
+                strHtml += "<td width=\"10%\">" + postList[i]["name"] + "</td>";
+                strHtml += "<td width=\"10%\">" + getDepName(postList[i]["deptId"]) + "</td>";
+                strHtml += "<td width=\"18%\">" + getPostContent(postList[i]["content"]) + "</td>";
+                strHtml += "<td width=\"18%\">" + getPostDemand(postList[i]["demand"]) + "</td>";
+                strHtml += "<td width=\"18%\">" + getPostRemark(postList[i]["remark"]) + "</td>";
+                strHtml += "<td><a href=\"JavaScript:check_Post(" + postList[i]["id"] + ")\"><img class='img' src='../imgs/check.png'></a>";
+                if(manager === "true") {
+                    strHtml += "<a href=\"JavaScript:edit_Post(" + postList[i]["id"] + ")\"><img class='img' src='../imgs/edit.png'></a>";
+                    strHtml += "<a href=\"JavaScript:delPost(" + postList[i]["id"] + ",'" + postList[i]["name"] + "')\"><img class='img' src='../imgs/del.png'></a>";
+                }
+            }
+            strHtml += "</td></tr></table>";
+        }
+        document.getElementById("coursesSpan").innerHTML = strHtml;
+    }
+
+    // 通过部门id获取到部门名称
+    function getDepName(id){
+        let depName;
+        $.ajax({
+            type: "post",
+            async: false,
+            url: getProjectPath() + "/getDepName",
+            data: {
+                "id" : id
+            },
+            success: function (resp) {
+                depName = resp;
+            }
+        })
+        return depName;
+    }
+
+    function getPostContent(data) {
+        if(data.length === 0) {
+            return "暂定";
+        }
+        if(data.length >= 10) {
+            return data.slice(0, 10) + "...";
+        } else {
+            return data;
+        }
+    }
+
+    function getPostDemand(data) {
+        if(data.length === 0) {
+            return "暂定";
+        }
+        if(data.length >= 10) {
+            return data.slice(0, 10) + "...";
+        } else {
+            return data;
+        }
+    }
+
+    function getPostRemark(data) {
+        if(data.length === 0) {
+            return "暂定";
+        }
+        if(data.length >= 10) {
+            return data.slice(0, 10) + "...";
+        } else {
+            return data;
+        }
+    }
+
+    // ================================
+
+    function check_Post(id) {
+        location.href = "postInfo.html?id=" + id; // 传递id参数，通过id显示对应的岗位信息
+    }
+
+    function edit_Post(id) {
+        location.href = "editPost.html?id=" + id; // 传递id参数，通过id显示对应的岗位信息
+    }
+
+    // 先从后端查询该岗位中是否有人，若有人就不能删除该岗位
+    function delPost(id, name) {
+        let flag = true;
+        // 获取该id对应的岗位中的人数
+        $.ajax({
+            type: "post",
+            async: false, // 设置为同步请求
+            url:getProjectPath() + "/deletePostLimit",
+            data:{"id": id},
+            success: function (data) { // 返回的是人数
+                if(data > 0){
+                    alert("该岗位正在使用中，不能删除");
+                    flag = false;
+                }
+            }
+        })
+        if(flag === false) {
+            return;
+        }
+
+        // 没有人就执行后面删除操作
+        flag = confirm("确认删除" + name + "吗？");
+        if(flag) {
+            axios({
+                method: "post",
+                url: getProjectPath() + "/deletePost",
+                params:{
+                    "id": id
+                }
+            }).then(function (resp) {
+                if(resp.data != 0){
+                    alert("删除成功");
+                }else{
+                    alert("删除失败");
+                }
+                ShowList();
+            })
+        }
+
+    }
+</script>
+<body>
+<div id="myp" style="text-align: center">
+    <table width="100%" border="0" cellpadding="0" cellspacing="0">
+        <tr>
+            <td height="38" colspan="13" class="tb_showall">
+                <span style="float:left">岗位信息列表</span>
+            </td>
+        </tr>
+        <tr class="td_header">
+            <td width="10%" class="mouse" id="id">岗位编号</td>
+            <td width="10%" class="mouse" id="name">岗位名称</td>
+            <td width="10%" class="mouse" id="department">所属部门</td>
+            <td width="18%" class="mouse" id="content">工作内容</td>
+            <td width="18%" class="mouse" id="demand">岗位需求</td>
+            <td width="18%" class="mouse" id="remark">备注</td>
+            <td></td>
+        </tr>
+    </table>
+
+    <div id="coursesSpan"></div>
+
+    <div id="page"></div>
+</div>
+</body>
+</html>

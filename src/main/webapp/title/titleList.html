@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="../css/hrms.css">
+    <script src="../js/axios.js"></script>
+    <script src="../js/jQuery.js"></script>
+    <script src="../js/public.js"></script>
+    <script src="../js/allEmp.js"></script>
+    <title></title>
+</head>
+<script>
+
+    window.onload = ShowList;
+
+    function ShowList() {
+        axios({
+            method: "post",
+            url: getProjectPath() + "/allTitle"
+        }).then(function (resp) {
+            WriteList(resp.data)
+        })
+
+    }
+
+    // 显示用户数据
+    function WriteList(titleList) {
+        let strHtml = "";
+        if (titleList == "") {
+        } else {
+            strHtml += "<table width=\"100%\"  border=\"0\" cellpadding=\"0\" cellspacing=\"0\" align=\"center\">	";
+            for (let i = 0; i < titleList.length; i++) {
+                strHtml += "<tr class=\"td_" + (i % 2 + 1) + "\">";
+                strHtml += "<td width=\"10%\">" + titleList[i]["id"] + "</td>";
+                strHtml += "<td width=\"17%\">" + titleList[i]["titleName"] + "</td>";
+                strHtml += "<td width=\"15%\">" + getTitleRank(titleList[i]["rank"]) + "</td>";
+                strHtml += "<td width=\"12%\">" + titleList[i]["count"] + "</td>";
+                strHtml += "<td width=\"40%\">" + getTitleDescribe(titleList[i]["describe"]) + "</td>";
+                strHtml += "<td><a href=\"JavaScript:show_title(" + titleList[i]["id"] + ")\"><img class='img' src='../imgs/check.png'></a>";
+                if (localStorage.getItem("manager") === "true") {
+                    strHtml += "<a href=\"JavaScript:edit_title(" + titleList[i]["id"] + ")\"><img class='img' src='../imgs/edit.png'></a>";
+                    strHtml += "<a href=\"JavaScript:delTitle(" + titleList[i]["id"] + ",'" + titleList[i]["titleName"] + "')\"><img class='img' src='../imgs/del.png'></a>";
+                }
+            }
+            strHtml += "</td></tr></table>";
+        }
+        document.getElementById("coursesSpan").innerHTML = strHtml;
+    }
+
+    function WriteList2(titleList) {
+        let strHtml = "";
+        strHtml += "<table width=\"100%\"  border=\"0\" cellpadding=\"0\" cellspacing=\"0\" align=\"center\">	";
+        strHtml += "<tr class=\"td_\">";
+        strHtml += "<td width=\"10%\">" + titleList["id"] + "</td>";
+        strHtml += "<td width=\"17%\">" + titleList["titleName"] + "</td>";
+        strHtml += "<td width=\"15%\">" + getTitleRank(titleList["rank"]) + "</td>";
+        strHtml += "<td width=\"12%\">" + titleList["count"] + "</td>";
+        strHtml += "<td width=\"40%\">" + getTitleDescribe(titleList["describe"]) + "</td>";
+        strHtml += "<td><a href=\"JavaScript:show_title(" + titleList["id"] + ")\"><img class='img' src='../imgs/check.png'></a>";
+        if (localStorage.getItem("manager") === "true") {
+            strHtml += "<a href=\"JavaScript:edit_title(" + titleList["id"] + ")\"><img class='img' src='../imgs/edit.png'></a>";
+            strHtml += "<a href=\"JavaScript:delTitle(" + titleList["id"] + ",'" + titleList["titleName"] + "')\"><img class='img' src='../imgs/del.png'></a>";
+        }
+
+        strHtml += "</td></tr></table>";
+        document.getElementById("coursesSpan").innerHTML = strHtml;
+    }
+
+    function getTitleDescribe(data) {
+        if (data.length >= 20) {
+            return data.slice(0, 20) + "...";
+        } else {
+            return data;
+        }
+    }
+
+    function show_title(id) {
+        location.href = "titleInfo.html?id=" + id;
+    }
+
+    function edit_title(id) {
+        location.href = "editTitle.html?id=" + id;
+    }
+
+    function delTitle(id, name) {
+        let flag = true;
+        $.ajax({
+            type: "post",
+            async: false,
+            url: getProjectPath() + "/deleteTitleLimit",
+            data: {
+                "id": id
+            },
+            success: function (data) {
+                if (data > 0) {
+                    alert("该职称正在使用中，不能删除");
+                    flag = false;
+                }
+            }
+        })
+        if (flag === false) {
+            return;
+        }
+        flag = confirm("确认删除" + name + "吗？");
+        if (flag) {
+            axios({
+                method: "post",
+                url: getProjectPath() + "/deleteTitle",
+                params: {
+                    "id": id
+                }
+            }).then(function (resp) {
+                if (resp.data != 0) {
+                    alert("删除成功");
+                } else {
+                    alert("删除失败");
+                }
+                ShowList();
+            })
+        }
+
+    }
+
+
+</script>
+<body>
+<div id="myp" style="text-align: center">
+    <table width="100%" border="0" cellpadding="0" cellspacing="0">
+        <tr>
+            <td height="38" colspan="13" class="tb_showall">
+                <span style="float:left">职称信息列表</span>
+                <span class="search_input" style="float:right">
+                    <img id="search-i" src="../imgs/check.png" width="12" height="12">
+                    <input type="text" id="i-advanced-search" placeholder="员工编号，员工姓名" value="">
+                </span>
+            </td>
+        </tr>
+        <tr class="td_header">
+            <td width="10%" class="mouse" id="id">职称编号</td>
+            <td width="17%" class="mouse" id="name">职称名称</td>
+            <td width="15%" class="mouse" id="rank">职称等级</td>
+            <td width="12%" class="mouse" id="count">职称人数</td>
+            <td width="40%" class="mouse" id="describe">职称描述</td>
+            <td></td>
+        </tr>
+    </table>
+
+    <div id="coursesSpan"></div>
+
+    <div id="page"></div>
+</div>
+<script>
+    document.getElementById("i-advanced-search").onblur = function () {
+        $.ajax({
+            type: "POST",
+            url: getProjectPath() + "/titleInfo",
+            data: {
+                id: document.getElementById("i-advanced-search").value
+            },
+            success: function (data) {
+                if(data == false) {
+                    document.getElementById("coursesSpan").innerHTML = "";
+                    alert("没有查询到员工")
+                } else {
+                    WriteList2(eval(data));
+                }
+            }
+        })
+    }
+</script>
+</body>
+</html>

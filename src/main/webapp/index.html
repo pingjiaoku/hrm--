@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>欢迎登录</title>
+    <link href="./css/register.css" rel="stylesheet">
+
+    <script src="js/axios.js"></script>
+    <script src="js/jQuery.js"></script>
+    <script src="js/public.js"></script>
+</head>
+<body>
+<div id="particles-js"></div>
+<div class="form-div">
+    <h1 >人力资源管理系统</h1>
+    <br><br>
+    <form id="reg-form" action="#" method="post">
+
+        <table>
+            <tr>
+                <td>账号</td>
+                <td class="inputs">
+                    <input name="userAccount" type="text" id="userAccount">
+                    <br>
+                    <span id="username_err" class="err_msg" style="display: none">用户名格式有误</span>
+                </td>
+            </tr>
+
+            <tr>
+                <td>密码</td>
+                <td class="inputs">
+                    <input name="password" type="password" id="password">
+                    <br>
+                    <span id="password_err" class="err_msg" style="display: none">密码格式有误</span>
+                </td>
+            </tr>
+
+        </table>
+
+        <div class="buttons">
+            <input value="登 录" type="button" id="reg_btn">
+        </div>
+        <br class="clear">
+    </form>
+
+</div>
+
+<script>
+
+    let usernameInput = document.getElementById("userAccount");
+    usernameInput.onblur = checkUsername;
+    function checkUsername() {
+        let username = usernameInput.value.trim();
+        let reg = /^\w{6,20}$/;
+        let flag = reg.test(username);
+
+        if (flag) {
+            document.getElementById("username_err").style.display = 'none';
+        } else {
+            document.getElementById("username_err").style.display = '';
+        }
+        return flag;
+    }
+
+
+    let passwordInput = document.getElementById("password");
+    passwordInput.onblur = checkPassword;
+    function checkPassword() {
+        let password = passwordInput.value.trim();
+        let reg = /^\w{6,20}$/;
+        let flag = reg.test(password);
+
+        if (flag) {
+            document.getElementById("password_err").style.display = 'none';
+        } else {
+            document.getElementById("password_err").style.display = '';
+        }
+        return flag;
+    }
+
+
+
+    let regBtn = document.getElementById("reg_btn");
+    regBtn.onclick = function () {
+        // 点击时，验证数据格式
+        let flag = checkUsername() && checkPassword();
+
+        // 验证账号密码
+        axios({
+            method:'post',
+            url:'login',
+            params:{
+                'userAccount':document.getElementById("userAccount").value,
+                'password':document.getElementById("password").value
+            }
+        }).then(function (resp){ // 接收相应用户名和部门id，该管理系统的权限由部门类别决定
+            if(resp.data == null){
+                alert("登陆失败，请检查账户和密码是否正确");
+            }else {
+                localStorage.clear();
+                if(resp.data["deptId"] === 1 || resp.data["deptId"] === 2) {
+                    // manager = true;
+                    // 本地存储
+                    localStorage.setItem("manager", "true");
+                } else {
+                    // manager = false;
+                    localStorage.setItem("manager", "false");
+                }
+                location.href="MainPage.html?id="+resp.data["id"]+"&name="+resp.data["name"];
+            }
+        })
+    }
+
+</script>
+<script src="js/particles.min.js"></script>
+</body>
+</html>
+

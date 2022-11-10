@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="mapper.UserMapper">
+
+    <resultMap id="UserResultMap" type="User">
+        <result column="tel_num" property="telNum"/>
+        <result column="edu_level" property="eduLevel"/>
+        <result column="dept_id" property="deptId"/>
+        <result column="title_id" property="titleId"/>
+        <result column="post_id" property="postId"/>
+    </resultMap>
+
+    <insert id="insertEmp">
+        insert into emp (account, password, name, salary, gender, tel_num, age, emil, address, induction,
+                         edu_level, school, politics, status, dept_id, title_id, post_id, pro, city)
+        values (#{account},#{password},#{name},#{salary},#{gender},#{telNum},#{age},#{emil},#{address},curdate(),
+                #{eduLevel},#{school},#{politics},#{status},#{deptId},#{titleId},#{postId},#{pro},#{city});
+    </insert>
+    <update id="updateUser">
+        update emp
+        set password=#{password},
+            name=#{name},
+            tel_num=#{telNum},
+            emil=#{emil},
+            age=#{age},
+            pro=#{pro},
+            city=#{city},
+            address=#{address},
+            school=#{school},
+            gender=#{gender},
+            edu_level=#{eduLevel},
+            politics=#{politics},
+            salary=#{salary},
+            status=#{status},
+            dept_id=#{deptId},
+            title_id=#{titleId},
+            post_id=#{postId}
+        where id = #{id};
+    </update>
+    <select id="selectUserById" resultMap="UserResultMap">
+        select id,account,password,name,salary,gender,tel_num,age,emil,pro,city,address,induction,edu_level,school,
+               politics,status,dept_id,title_id,post_id
+        from emp
+        where id = #{id};
+    </select>
+    <select id="selectAllUser" resultMap="UserResultMap">
+        select id, name, salary, gender, age, induction, edu_level, politics, status, dept_id, title_id, post_id
+        from emp;
+    </select>
+    <select id="searchUser" resultMap="UserResultMap">
+        select id, name, salary, gender, age, induction, edu_level, politics, status, dept_id, title_id, post_id
+        from emp where id = #{data} or name = #{data};
+    </select>
+    <select id="selectUser" resultMap="UserResultMap">
+        select id, name, salary, gender, age, induction, edu_level, politics, status, dept_id, title_id, post_id
+        from emp
+        <where>
+            <if test="id!=null"> 'and' id = #{id} </if>
+            <if test="name!=null"> and name like #{name} </if>
+            <if test="gender!=null"> and gender = #{gender} </if>
+            <if test="politics!=null"> and politics = #{politics} </if>
+            <if test="ageMin!=null"> and age >= #{ageMin} </if>
+            <if test="ageMax!=null"> <![CDATA[ and age <= #{ageMax} ]]> </if>
+            <if test="school!=null"> and school like #{school} </if>
+            <if test="eduLevel!=null"> and edu_level = #{eduLevel} </if>
+            <if test="pro!=null"> and pro = #{pro} </if>
+            <if test="city!=null"> and city = #{city} </if>
+            <if test="salaryMin!=null"> and salary >= #{salaryMin} </if>
+            <if test="salaryMax!=null"> <![CDATA[ and salary <= #{salaryMax} ]]> </if>
+            <if test="dateMin!=null"> and induction >= #{dateMin} </if>
+            <if test="dateMax!=null"> <![CDATA[ and induction <= #{dateMax} ]]> </if>
+            <if test="deptId!=null"> and dept_id = #{deptId} </if>
+            <if test="titleId!=null"> and title_id = #{titleId} </if>
+            <if test="postId!=null"> and post_id = #{postId} </if>
+            <if test="status!=null"> and status = #{status} </if>
+        </where>
+    </select>
+    <select id="getPostList" resultType="Classes.Post">
+        select id,name,deptId from post;
+    </select>
+    <select id="getDepList" resultType="Classes.Department">
+        select depID, depName from department;
+    </select>
+
+
+</mapper>

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="../js/jQuery.js"></script>
+    <script src="../js/axios.js"></script>
+    <script src="../js/public.js"></script>
+    <link rel="stylesheet" href="../css/addTitle.css">
+    <title>Title</title>
+</head>
+<body>
+<div class="form-div">
+    <form id="reg-form" action="#" method="post">
+        <table>
+            <tr>
+                <td class="litTit">查看职称信息</td>
+            </tr>
+            <tr>
+                <td>职称名称</td>
+                <td>
+                    <input type="text" name="name" id="name" value="" maxlength="15" placeholder="必填">
+                </td>
+            </tr>
+            <tr>
+                <td>职称等级</td>
+                <td>
+                    <input type="text" name="rank" id="rank" value="" maxlength="15" placeholder="必填">
+                </td>
+            </tr>
+            <tr>
+                <td>职称描述</td>
+                <td>
+                    <textarea cols="26" rows="5" class="textarea" id="describe" name="describe"></textarea>
+                </td>
+            </tr>
+        </table>
+        <div class="buttons">
+            <input value="返 回" type="button" class="reg_btn" id="cancel">
+        </div>
+    </form>
+</div>
+<script>
+    window.onload = function () {
+        let id = getParam("id");
+        axios({
+            method: "post",
+            url: getProjectPath() + "/titleInfo",
+            params: {
+                "id": id
+            }
+        }).then(function (resp) {
+            WriteInfo(resp.data);
+        })
+    }
+
+    let name = document.getElementById("name");
+    let rank = document.getElementById("rank");
+    let des = document.getElementById("describe");
+
+    function WriteInfo(data) {
+        name.value = data["titleName"];
+        rank.value = getTitleRank(data["rank"]);
+        des.value = data["describe"];
+        setAttr();
+    }
+
+    // 设置不可修改
+    function setAttr() {
+        $("#name").attr("disabled", "disabled");
+        $("#rank").attr("disabled", "disabled");
+        $("#describe").attr("disabled", "disabled");
+    }
+
+    document.getElementById("cancel").onclick = function () {
+        location.href = "titleList.html";
+    }
+</script>
+</body>
+</html>

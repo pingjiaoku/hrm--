@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta http-equiv="Expires" content="0">
+
+    <meta http-equiv="Pragma" content="no-cache">
+
+    <meta http-equiv="Cache-control" content="no-cache">
+    <title>组织管理界面</title>
+    <link rel="stylesheet" href="../js/jstree/dist/themes/default/style.min.css" />
+    <link rel="stylesheet" href="../css/dep.css" />
+    <script src="../js/jQuery.js"></script>
+    <script src="../js/jstree/dist/jstree.min.js"></script>
+    <script src="../js/public.js"></script>
+    <script>
+        treeData={ 'core' : { 'data' : [{ "id" : "0", "parent" : "#", "text" : "<span id='mainTree'>部门管理菜单</span>","state":{"opened":true} }]} }
+        tempObj= {"id":"","parent":"","text":""}
+        var listdata = {}//原始的列表数据
+        var currentID = -1;//当前id
+        $(document).ready(function () {//获取树形框结构
+            $.post(getProjectPath() + "/getList",
+                function (data) {
+                    let jsonList = eval(data);
+                    listdata=jsonList
+                    fillParent(listdata)
+                    drawTree(jsonList);
+                },"json")
+
+            // $('#btn').click(function () {
+            //     treeData.core.data.push({"id" : "8", "parent" : "1", "text" : "添加的部门"})
+            //     $('#jstree_demo_div').jstree().settings=treeData;
+            //     $('#jstree_demo_div').jstree().refresh();
+            // })
+            $('#delDep').click(function () {//删除按钮被点击
+                if(localStorage.getItem("manager") !== "true"){
+                    alert("您不是管理员，无法删除部门！");
+                    return;
+                }
+                if(checkDel() && confirm("确认删除该部门吗？")){//输入没问题,请求删除
+                    $.post(getProjectPath() + "/delDep",{"id":currentID},function (data) {
+                        if(data == -1){
+                            alert("部门还有成员，禁止删除！")
+                        }
+                        else if(data == 0){
+                            alert("删除失败！")
+                        }
+                        else {
+                            alert("删除成功！")
+                            window.location.reload();
+
+                        }
+
+                    })
+                }
+                // else {//还没选中任何一项
+                //     alert("还未选中任何一项！")
+                // }
+            })
+            $('#editDep').click(function (){//修改部门按钮按下
+                if(localStorage.getItem("manager") !== "true"){
+                    alert("您不是管理员，无法修改部门！");
+                    return;
+                }
+                if(checkInput() && confirm("确认修改该部门吗？")){//通过必须检测
+                    //默认为空格，如果不为空就用值替换
+                    var tempUpload = {"depID":frm.id.value,"parentDepID":frm.parentId.value,"depName":frm.depName.value,"depType":frm.type.value,"depAddress":" ","depPostCode":" ","depPhoneNumber":" ","depTelePhone":" ","depEmail":" "}
+                    if(check(frm.address.value)){
+                        tempUpload.depAddress=frm.address.value;
+                    }
+                    if(check(frm.postCode.value)){
+                        tempUpload.depPostCode=frm.postCode.value;
+                    }
+                    if(check(frm.phone.value)){
+                        tempUpload.depPhoneNumber=frm.phone.value;
+                    }
+                    if(check(frm.telePhone.value)){
+                        tempUpload.depTelePhone=frm.telePhone.value;
+                    }
+                    if(check(frm.email.value)){
+                        tempUpload.depEmail=frm.email.value;
+                    }
+                    if(!check(frm.parentId.value)){
+                        tempUpload.parentDepID=0
+                    }
+                    // if(check(frm.parentId.value.trim())){
+                    //     tempUpload.parentDepID=frm.parentId.value;
+                    // }
+                    // else {
+                    //     tempUpload.parentDepID=0
+                    // }
+                    $.post(getProjectPath() + "/updateDep",tempUpload,function (data) {
+                        if(data > 0){
+                            alert("修改成功！")
+                            window.location.reload();
+                        }
+
+                    })
+
+                }
+            })
+            $('#jstree_demo_div').on("select_node.jstree",function (e,data) {//监听选择树节点的事件
+                //根据id获取信息的请求
+                $.post(getProjectPath() + "/getInfo",{"id":data.selected[0]},
+                    function (data) {
+                        fillTexts(eval(data))//填充文本框
+                    },"json")
+                // console.log($('#jstree_demo_div').jstree(true).get_node("1"))
+
+
+            })
+        })
+        function checkDel() {
+            if(currentID == -1){
+                alert("当前还没选中任何节点！")
+                return false
+            }
+            // if($.jstree.reference('#jstree_demo_div').)
+            //console.log($.jstree.get_node(1))
+            let node = $("#jstree_demo_div").jstree(true).get_node(currentID)//获取当前节点
+            //console.log($("#jstree_demo_div").jstree(true).is_parent(node))
+            if($("#jstree_demo_div").jstree(true).is_parent(node)){
+                alert("该部门还有子部门，禁止删除！")
+                return false
+            }
+            return true
+
+        }
+        function checkInput() {//检查修改按钮的输入
+            if(currentID==-1){
+                alert("您还没选中任何一个部门！")
+                return false;
+            }
+            if(!check(frm.id.value)){
+                alert("部门编号不能为空！");
+                frm.id.focus();
+                return false;
+            }
+            // if(!check(frm.parentId.value)){
+            //     alert("上级部门不能为空！")
+            //     frm.parentId.focus();
+            //     return false;
+            // }
+            if(!check(frm.depName.value)){
+                alert("部门名称不能为空！")
+                frm.depName.focus();
+                return false;
+            }
+            //检查是否与别的部门id重合
+            //console.log(currentID+"",frm.id.value)
+            if(currentID+"" != frm.id.value){//修改了部门id
+                alert("不能修改部门的id！")
+                return false
+            }
+            //检查是否与别的部门名称重合
+            if(idToName(currentID) != frm.depName.value){//修改了部门名称
+
+                for(var i=0;i<treeData.core.data.length;i++){
+                    if(treeData.core.data[i].text==frm.depName.value){
+                        alert("不能修改为其他部门的名称！")
+                        frm.depName.focus()
+                        return false
+                    }
+                }
+            }
+
+            // if(nameToId(frm.parentId.value)=="-1"){//不存在这个上级部门
+            //     if(frm.parentId.value == ""){
+            //         return true
+            //     }
+            //     alert("您输入的上级部门不存在！")
+            //     frm.parentId.focus()
+            //     return false
+            // }
+            return true;
+        }
+        function check(inputValue) {//检查长度
+            if(inputValue.length==0){
+                return false;
+            }
+            return true;
+        }
+        function drawTree(tree) {
+            for(let i=0;i<tree.length;i++){//遍历tree，因为servlet发过来的和jstree规定的格式不一样，所以需要转换格式
+                var  tempObj={}
+                tempObj["id"]=tree[i].depID;
+                tempObj["parent"]=tree[i].parentDepID;
+                tempObj["text"]=tree[i].depName;
+                treeData.core.data.push(tempObj);
+            }
+            $('#jstree_demo_div').jstree(treeData);
+
+        }
+        function fillTexts(datas) {
+            //console.log(datas)
+            currentID=datas.depID
+            frm.id.value=datas.depID
+            frm.parentId.value=datas.parentDepID
+            frm.depName.value=datas.depName
+            frm.type.value=datas.depType
+            frm.address.value=datas.depAddress
+            frm.postCode.value = datas.depPostCode
+            frm.phone.value = datas.depPhoneNumber
+            frm.telePhone.value = datas.depTelePhone
+            frm.email.value = datas.depEmail
+
+        }
+        function idToName(id) {//通过id找名称
+            if(id == "0"){//0就是最顶级的，没有更顶级的了
+                return ""
+            }
+            for(let i = 0;i<treeData.core.data.length;i++){
+                if(id == treeData.core.data[i].id){
+                    return treeData.core.data[i].text;
+                }
+            }
+            return "";
+
+        }
+        // function nameToId(name) {//通过id找名称,没有名称就默认提升到最高级
+        //     for(let i = 0;i<treeData.core.data.length;i++){
+        //         if(name == treeData.core.data[i].text){
+        //             return treeData.core.data[i].id;
+        //         }
+        //     }
+        //     return "-1";
+        //
+        // }
+        function fillParent(data) {//填充上级部门
+            for (let i=0;i<data.length;i++) {
+                $('#parentDep').append("<option value=" + data[i].depID + ">" + data[i].depName + "</option>")
+            }
+        }
+
+
+    </script>
+
+</head>
+<body>
+<table align="center">
+    <tr>
+        <td width="30%">
+            <div id="jstree_demo_div"></div>
+        </td>
+        <td style="border:0px solid ;float:left;height:600px;background-color: #a8a8a8;"></td>
+        <td width="70%">
+            <form name="frm">
+                &nbsp;部门编码：<input type="text" class="editInfo" name="id" readonly="readonly">
+                <br><br>
+                &nbsp;上级部门：
+                <select name="parentId" id="parentDep">
+                <option value="0">无上级部门</option>
+                </select>
+                <br><br>
+                &nbsp;部门名称：<input type="text" class="editInfo" name="depName">
+                <br><br>
+                &nbsp;部门类型：
+                <select name="type" id="select_type">
+                    <option value='0'>生产部门</option>
+                    <option value='1'>管理部门</option>
+                </select>
+                <br><br>
+                &nbsp;部门地址：<input type="text" class="editInfo" name="address">
+                <br><br>
+                &nbsp;邮政编码：<input type="text" class="editInfo" name="postCode">
+                <br><br>
+                &nbsp;电话号码：<input type="text" class="editInfo" name="phone">
+                <br><br>
+                &nbsp;传真号码：<input type="text" class="editInfo" name="telePhone">
+                <br><br>
+                &nbsp;电子邮件：<input type="text" class="editInfo" name="email">
+                <br><br>
+                <div class="buttons" style="text-align: center">
+                    &nbsp;&nbsp;<input value="删除部门" type="button" class="reg_btn" id="delDep">
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input value="修改部门" type="button" class="reg_btn" id="editDep">
+                </div>
+            </form>
+        </td>
+    </tr>
+</table>
+
+</body>
+</html>

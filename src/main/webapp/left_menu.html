@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <link rel="stylesheet" href="css/menu_style.css" type="text/css">
+    <script type="text/javascript" src="js/jQuery.js"></script>
+
+    <title>menu</title>
+</head>
+<body link="#333333" vlink="#333333" alink="#FF0000" bgColor="#1fa5a2">
+<div id="menuDiv"></div>
+</body>
+</html>
+<script>
+    let classCount = 3; // 菜单大类的个数
+    function Show(theId) {
+        let theTr = eval("tr_" + theId);
+        //document.getElementById('tr_0');
+        if (theTr.style.display == "none") {
+            theTr.style.display = "block";
+        } else {
+            theTr.style.display = "none";
+        }
+        for (let i = 0; i < classCount; i++) {
+            if (i == theId)
+                continue;
+            theTr = eval("tr_" + i);
+            theTr.style.display = "none";
+        }
+    }
+
+
+    var menuList = [];
+    function writeMenu() {
+        let manager = localStorage.getItem("manager");
+
+        if(manager === "true") {
+            menuList[0] =
+                {
+                    "main": "员工管理", "sub": [
+                        {"name": "员工信息", "link": "emp/AllEmp.html"},
+                        {"name": "查询员工", "link": "emp/selectEmp.html"},
+                        {"name": "添加员工", "link": "emp/addEmp.html"}]
+                };
+            menuList[1] =
+                {
+                    "main": "部门管理", "sub": [
+                        {"name": "查询部门树状图", "link": "department/dep.html"},
+                        {"name": "新建部门", "link": "department/addDep.html"}
+                    ]
+                };
+            menuList[2] =
+                {
+                    "main": "岗位管理", "sub": [
+                        {"name": "岗位信息", "link": "post/postList.html"},
+                        {"name": "添加岗位", "link": "post/addPost.html"}]
+                };
+            menuList[3] =
+                {
+                    "main": "职称管理", "sub": [
+                        {"name": "职称信息", "link": "title/titleList.html"},
+                        {"name": "添加职称", "link": "title/addTitle.html"}]
+                };
+        }else {
+            menuList[0] =
+                {
+                    "main": "员工管理", "sub": [
+                        {"name": "员工信息", "link": "emp/AllEmp.html"},
+                        {"name": "查询员工", "link": "emp/selectEmp.html"}]
+                };
+            menuList[1] =
+                {
+                    "main": "部门管理", "sub": [
+                        {"name": "查询部门树状图", "link": "department/dep.html"}]
+                };
+            menuList[2] =
+                {
+                    "main": "岗位管理", "sub": [
+                        {"name": "岗位信息", "link": "post/postList.html"}]
+                };
+            menuList[3] =
+                {
+                    "main": "职称管理", "sub": [
+                        {"name": "职称信息", "link": "title/titleList.html"}]
+                };
+        }
+    }
+    writeMenu();
+    function createMenu() {
+        var strHtml = "";
+        strHtml += "<table class=\"guide guideText\" width=\"100%\">	";
+        for (let i = 0; i < menuList.length; i++) {
+            strHtml += "<TR><TD  id=\"td_" + i + "\"  align=\"center\" width=\"90%\" bgColor=\"#1f65c2\" ><A  href=\"javascript:Show(" + i + ")\">" + menuList[i]["main"] + "</A></TD></TR>";
+            strHtml += " <TR id=tr_" + i + " style=\"DISPLAY: none;cursor:hand\">";
+            strHtml += " 	<TD  width=\"100%\" align=\"center\"  bgColor=\"#4c84ce\" height=\"50\">";
+            strHtml += " 		<table align=\"center\" border=\"0\" width=\"90%\">";
+            let submenu = menuList[i]["sub"];
+            for (let j = 0; j < submenu.length; j++) {
+                strHtml += "<tr><td width=\"150\" align=\"center\" ><A href=\"" + submenu[j]["link"] + "\" target=\"right_workspace\">" + submenu[j]["name"] + "</A> </td><tr>";
+            }
+            strHtml += " </table> </TD> </TR>";
+        }
+        strHtml += " </table>";
+        document.getElementById("menuDiv").innerHTML = strHtml;
+    }
+
+    createMenu();
+
+</script>
+

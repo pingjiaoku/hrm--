@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="../js/jQuery.js"></script>
+    <script src="../js/axios.js"></script>
+    <script src="../js/public.js"></script>
+    <link rel="stylesheet" href="../css/addPost.css">
+    <title>Title</title>
+</head>
+<body>
+<div class="form-div">
+    <form id="reg-form" action="#" method="post">
+        <table>
+            <tr>
+                <td class="litTit">岗位信息添加</td>
+            </tr>
+            <tr>
+                <td>岗位名称</td>
+                <td>
+                    <input type="text" name="name" id="name" value="" maxlength="15" placeholder="必填">
+                    <span id="name_err" class="err_msg" style="display: none">岗位名称应为2~15个汉字</span>
+                    <span id="name_exist" class="err_msg" style="display: none">岗位名称已存在</span>
+                </td>
+            </tr>
+            <tr>
+                <td>所属部门</td>
+                <td class="else">
+                    <select name="department" id="department" size="1">
+                        <option value="0">暂定</option>
+                        <span id="dept_box"></span>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>工作内容</td>
+                <td>
+                    <textarea cols="26" rows="5" class="textarea" id="content" name="content"></textarea>
+                    <span id="content_err" class="err_msg" style="display: none">工作内容描述字数不能超过200</span>
+                </td>
+            </tr>
+            <tr>
+                <td>岗位需求</td>
+                <td>
+                    <textarea cols="26" rows="5" class="textarea" id="demand" name="demand"></textarea>
+                    <span id="demand_err" class="err_msg" style="display: none">需求描述字数不能超过200</span>
+                </td>
+            </tr>
+            <tr>
+                <td>备注</td>
+                <td>
+                    <textarea cols="26" rows="5" class="textarea" id="describe" name="describe"></textarea>
+                    <span id="des_err" class="err_msg" style="display: none">岗位描述字数不能超过200</span>
+                </td>
+            </tr>
+
+        </table>
+        <div class="buttons">
+            <input value="提 交" type="button" class="reg_btn" id="submit">
+            <input value="取 消" type="button" class="reg_btn" id="cancel">
+        </div>
+    </form>
+</div>
+<script>
+    let name = document.getElementById("name");
+    let department = document.getElementById("department");
+    let content = document.getElementById("content");
+    let demand = document.getElementById("demand");
+    let describe = document.getElementById("describe");
+
+    window.onload = function () {
+        // 在后端获取部门信息，用于生成部门下拉框
+        axios({
+            url: getProjectPath() + "/getList",
+            method: "post"
+        }).then(function (resp) {
+            writeDeptBox(eval(resp.data)); // 生成部门下拉框
+        })
+    }
+
+    // 生成部门下拉框
+    function writeDeptBox(data) {
+        for (let i = 0; i < data.length; i++) {
+            document.getElementById("department").append("<option value='" + data[i]["depID"] + "'>" + data[i]["depName"] + "</option>");
+        }
+    }
+
+    name.onblur = checkName;
+    function checkName() {
+        let test = /^\S{2,15}$/;
+        let flag = test.test(name.value);
+        if(flag){
+            document.getElementById("name_err").style.display = "none";
+        } else {
+            document.getElementById("name_err").style.display = "";
+            return false;
+        }
+
+        // 将输入框的值提交到后端，在后端判断该名称是否已存在，若存在就给出提示信息，就不能添加该岗位
+        $.ajax({
+            type:"post",
+            async: false,
+            url: getProjectPath() + "/postNameExist",
+            data:{
+                "name":name.value
+            },
+            success: function (data){
+                if(data == 0){
+                    document.getElementById("name_exist").style.display = "none";
+                } else {
+                    document.getElementById("name_exist").style.display = "";
+                    flag = false;
+                }
+            }
+        })
+
+        return flag;
+    }
+
+    document.getElementById("submit").onclick = function () {
+        let flag = checkName(); // 提交前执行检查操作
+        if(flag){
+            if(confirm("确认添加该岗位信息吗")) {
+                axios({
+                    method: "post",
+                    url: getProjectPath() + "/addPost",
+                    params: {
+                        'name': name.value,
+                        'department': department.value,
+                        'content': content.value,
+                        'demand': demand.value,
+                        'describe': describe.value
+                    }
+                }).then(function (resp) { // 提交成功返回true
+                    if (resp.data == true) {
+                        alert("添加成功");
+                        location.href = "postList.html";
+                    } else {
+                        alert("添加失败");
+                    }
+                })
+            }
+        }
+    }
+
+    document.getElementById("cancel").onclick = function () {
+        location.href = "postList.html";
+    }
+</script>
+</body>
+</html>

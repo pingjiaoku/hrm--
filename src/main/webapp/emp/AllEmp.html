@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="../css/hrms.css">
+    <script src="../js/axios.js"></script>
+    <script src="../js/jQuery.js"></script>
+    <script src="../js/public.js"></script>
+    <script src="../js/allEmp.js"></script>
+</head>
+<script>
+    // 存放员工信息
+    var dataEmp;
+    // 总员工数量
+    let allCount;
+    // 每页显示条数
+    let page_number = 13;
+    // 总页数
+    let Total_pages;
+    // 当前页数
+    let page_id;
+    // 职称信息
+    let dataTitle;
+    // 部门信息
+    let departmentList;
+    // 岗位信息
+    let postList;
+
+    window.onload = function (){
+        // 获取职称信息
+        $.ajax({
+            type:"post",
+            async: false,
+            url:getProjectPath() + "/titleBox",
+            success: function (resp){
+                dataTitle = eval(resp);
+            }
+        })
+        $.ajax({
+            type:"post",
+            async: false,
+            url:getProjectPath() + "/getDeptBox",
+            success: function (resp){
+                departmentList = eval(resp);
+            }
+        })
+        $.ajax({
+            type:"post",
+            async: false,
+            url:getProjectPath() + "/getPostName",
+            success: function (resp){
+                postList = eval(resp);
+            }
+        })
+
+        let list = JSON.parse(sessionStorage.getItem("dataJSON"));
+        sessionStorage.clear();
+        if(list==null) {
+            showEmpData();
+        }else if(list == ""){
+            let bigImg = document.createElement("img");
+            bigImg.src = "../imgs/no_data.png";
+            bigImg.width = 520;
+            document.getElementById('myp').appendChild(bigImg);
+        }else{
+            dataEmp = eval(list);
+            allCount = dataEmp.length;
+            Total_pages=allCount / page_number;
+            WriteList(dataEmp,0,page_number);
+            sessionStorage.clear();
+        }
+
+    }
+
+</script>
+<body>
+<div id="myp" style="text-align: center">
+    <table width="100%" border="0" cellpadding="0" cellspacing="0">
+        <tr>
+            <td height="38" colspan="13" class="tb_showall">
+                <span style="float:left">员工信息列表</span>
+                <span class="search_input" style="float:right">
+                    <img id="search-i" src="../imgs/check.png" width="12" height="12">
+                    <input type="text" id="i-advanced-search" placeholder="员工编号，员工姓名" value="">
+                </span>
+            </td>
+        </tr>
+        <tr class="td_header">
+            <td width="6%" class="mouse" id="sort_id">工号
+                <span class="img_up_down">
+                    <img class="up" src="../imgs/up.png">
+                    <img class="down" src="../imgs/down.png">
+                </span>
+            </td>
+            <td width="6%" class="mouse" id="sort_name">名称
+                <span class="img_up_down">
+                    <img class="up" src="../imgs/up.png">
+                    <img class="down" src="../imgs/down.png">
+                </span>
+            </td>
+            <td width="6%" class="mouse" id="sort_gender">性别
+                <span class="img_up_down">
+                    <img class="up" src="../imgs/up.png">
+                    <img class="down" src="../imgs/down.png">
+                </span>
+            </td>
+            <td width="6%" class="mouse" id="sort_age">年龄
+                <span class="img_up_down">
+                    <img class="up" src="../imgs/up.png">
+                    <img class="down" src="../imgs/down.png">
+                </span>
+            </td>
+            <td width="6%" class="mouse" id="sort_edu">学历
+                <span class="img_up_down">
+                    <img class="up" src="../imgs/up.png">
+                    <img class="down" src="../imgs/down.png">
+                </span>
+            </td>
+            <td width="6%" class="mouse" id="sort_salary">薪水
+                <span class="img_up_down">
+                    <img class="up" src="../imgs/up.png">
+                    <img class="down" src="../imgs/down.png">
+                </span>
+            </td>
+            <td width="8%" class="mouse" id="sort_status">状态
+                <span class="img_up_down">
+                    <img class="up" src="../imgs/up.png">
+                    <img class="down" src="../imgs/down.png">
+                </span>
+            </td>
+            <td width="9%" class="mouse" id="sort_dept">部门
+                <span class="img_up_down">
+                    <img class="up" src="../imgs/up.png">
+                    <img class="down" src="../imgs/down.png">
+                </span>
+            </td>
+            <td width="9%" class="mouse" id="sort_post">岗位
+                <span class="img_up_down">
+                    <img class="up" src="../imgs/up.png">
+                    <img class="down" src="../imgs/down.png">
+                </span>
+            </td>
+            <td width="9%" class="mouse" id="sort_title">职称
+                <span class="img_up_down">
+                    <img class="up" src="../imgs/up.png">
+                    <img class="down" src="../imgs/down.png">
+                </span>
+            </td>
+            <td width="10%" class="mouse" id="sort_politics">政治面貌
+                <span class="img_up_down">
+                    <img class="up" src="../imgs/up.png">
+                    <img class="down" src="../imgs/down.png">
+                </span>
+            </td>
+            <td width="10%" class="mouse" id="sort_date">入职日期
+                <span class="img_up_down">
+                    <img class="up" src="../imgs/up.png">
+                    <img class="down" src="../imgs/down.png">
+                </span>
+            </td>
+
+            <td></td>
+        </tr>
+    </table>
+
+
+    <div id="coursesSpan"></div>
+
+    <div id="page"></div>
+</div>
+</body>
+<script>
+    function createPage(){
+        let strHTML = "<a href='JavaScript:WriteList(dataEmp,(page_id-2)*page_number,(page_id-1)*page_number)'>上一页</a>"
+
+        for (let i = 0; i < Total_pages; i++) {
+            let pageCount = i+1;
+            if(page_id===pageCount){
+                strHTML += "<a style='color: #0069ff' href='JavaScript:WriteList(dataEmp,"+i+"*page_number,"+pageCount+"*page_number)'>" + pageCount + "</a>";
+            }else {
+            strHTML += "<a href='JavaScript:WriteList(dataEmp,"+i+"*page_number,"+pageCount+"*page_number)'>" + pageCount + "</a>";
+            }
+        }
+        strHTML += "<a href='JavaScript:WriteList(dataEmp,page_id*page_number,(page_id+1)*page_number)'>下一页</a>"
+        document.getElementById("page").innerHTML = strHTML;
+    }
+
+
+    // 获取对象
+    let id = document.getElementById("sort_id");
+    let name = document.getElementById("sort_name");
+    let gender = document.getElementById("sort_gender");
+    let status = document.getElementById("sort_status")
+    let salary = document.getElementById("sort_salary");
+    let age = document.getElementById("sort_age")
+    let edu = document.getElementById("sort_edu");
+    let department = document.getElementById("sort_dept");
+    let title = document.getElementById("sort_title");
+    let post = document.getElementById("sort_post");
+    let politics = document.getElementById("sort_politics");
+    let date = document.getElementById("sort_date");
+
+    let grandson_last = null; // 上一个排序图标的对象
+    let flag_last = true; // 上一个排序图标对象的类型，true:升序，false:降序
+
+
+    // 点击事件，排序
+    var idCount = 0;
+    id.onclick = function () {
+        orderImg(id, idCount);
+        ordered("id",idCount)
+        idCount++;
+    }
+    var nameCount = 0;
+    name.onclick = function () {
+        orderImg(name, nameCount);
+        orderByName(nameCount);
+        nameCount++;
+    }
+    var ganderCount = 0;
+    gender.onclick = function () {
+        orderImg(gender, ganderCount);
+        ordered("gender", ganderCount)
+        ganderCount++;
+    };
+    var ageCount = 0;
+    age.onclick = function () {
+        orderImg(age, ageCount);
+        ordered("age", ageCount)
+        ageCount++;
+    };
+    var eduCount = 0;
+    edu.onclick = function () {
+        orderImg(edu, eduCount);
+        ordered("eduLevel", eduCount);
+        eduCount++;
+    }
+    var salaryCount = 0;
+    salary.onclick = function () {
+        orderImg(salary, salaryCount);
+        ordered("salary", salaryCount);
+        salaryCount++;
+    }
+    var statusCount = 0;
+    status.onclick = function () {
+        orderImg(status, statusCount);
+        ordered("status", statusCount);
+        statusCount++;
+    }
+    var deptCount = 0;
+    department.onclick = function () {
+        orderImg(department, deptCount);
+        ordered("deptId", deptCount);
+        deptCount++;
+    }
+    var titleCount = 0;
+    title.onclick = function () {
+        orderImg(title, titleCount);
+        ordered("titleId", titleCount);
+        titleCount++;
+    }
+    var postCount = 0;
+    post.onclick = function () {
+        orderImg(post, postCount);
+        ordered("postId", postCount);
+        postCount++;
+    }
+    var politicsCount = 0;
+    politics.onclick = function () {
+        orderImg(politics, politicsCount);
+        ordered("politics", politicsCount);
+        politicsCount++;
+    }
+    var dateCount = 0;
+    date.onclick = function () {
+        orderImg(date, dateCount);
+        ordered("induction", dateCount);
+        dateCount++;
+    }
+
+    // 鼠标移入移出事件
+    $(".mouse").on("mouseover",mouseIn);
+    $(".mouse").on("mouseout",mouseOut);
+
+    function mouseIn() {
+        this.style.backgroundColor = "grey";
+    }
+    function mouseOut() {
+        this.style.backgroundColor = "#e6e6e6";
+    }
+
+    // 查询框
+    let search_User = document.getElementById("i-advanced-search");
+    search_User.onblur = function () {
+        let data = search_User.value.trim();
+        // let flag = false;
+        if (data != "") {
+            axios({
+                method: "post",
+                url: getProjectPath() + "/searchUser",
+                params: {
+                    'data': data
+                }
+            }).then(function (resp) {
+                if (resp.data == "") {
+                    dataEmp="";
+                    WriteList(dataEmp)
+                    let bigImg = document.createElement("img");
+                    bigImg.src = "../imgs/no_data.png";
+                    bigImg.width = 520;
+                    document.getElementById('coursesSpan').appendChild(bigImg);
+                } else {
+                    dataEmp=resp.data;
+                    WriteList(dataEmp, 0, page_number);
+                }
+            })
+        }
+    }
+
+
+</script>
+
+</html>

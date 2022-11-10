@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="../css/addEml.css">
+    <script src="../js/axios.js"></script>
+    <script src="../js/jQuery.js"></script>
+    <script src="../js/public.js"></script>
+</head>
+<body>
+<div class="form-div">
+    <form id="reg-form" action="#" method="post">
+        <table>
+            <!--            <div class="infoType">-->
+            <tr>
+                <td class="litTit">基本信息</td>
+            </tr>
+            <tr>
+                <td>姓名</td>
+                <td>
+                    <input type="text" id="name" value="">
+                </td>
+                <td>性别</td>
+                <td>
+                    <input type="text" id="gender" value="">
+                </td>
+            </tr>
+            <tr>
+                <td>账号</td>
+                <td class="inputs">
+                    <input type="text" id="account" value="">
+                </td>
+                <td>密码</td>
+                <td class="inputs">
+                    <input type="text" id="pwd" value="">
+                </td>
+            </tr>
+            <tr>
+                <td>年龄</td>
+                <td class="inputs">
+                    <input type="text" id="age" value="">
+                </td>
+                <td>政治面貌</td>
+                <td class="else"><input type="text" id="politics" value="">
+                </td>
+            </tr>
+            <tr>
+                <td>学历</td>
+                <td class="else">
+                    <input type="text" id="edu" value="">
+                </td>
+                <td>毕业学校</td>
+                <td class="inputs">
+                    <input type="text" id="school" value="">
+                </td>
+            </tr>
+            <tr>
+                <td>入职日期</td>
+                <td colspan="3">
+                    <input type="text" id="induction" value="" style="width: 94%;">
+                </td>
+            </tr>
+            <!--            </div>-->
+            <!--            <div class="infoType">-->
+            <tr>
+                <td class="litTit">联系信息</td>
+            </tr>
+
+            <tr>
+                <td>电话</td>
+                <td class="inputs">
+                    <input type="text" id="tel" value="">
+                </td>
+                <td>邮箱</td>
+                <td class="inputs">
+                    <input type="text" id="emil" value="">
+                </td>
+            </tr>
+            <tr>
+                <td>住址</td>
+                <td colspan="3">
+                    <input type="text" id="address" value="" style="width: 94%;">
+                </td>
+            </tr>
+            <!--            </div>-->
+            <!--            <div class="infoType">-->
+            <tr>
+                <td class="litTit">任职信息</td>
+            </tr>
+            <tr>
+                <td>部门</td>
+                <td class="else">
+                    <input type="text" id="department" value="">
+                </td>
+                <td>职称</td>
+                <td class="else">
+                    <input type="text" id="title" value="">
+                </td>
+            </tr>
+            <tr>
+                <td>岗位</td>
+                <td class="else">
+                    <input type="text" id="post" value="">
+                </td>
+                <td>状态</td>
+                <td class="else">
+                    <input type="text" id="status" value="">
+                </td>
+            </tr>
+            <tr>
+                <td>薪水</td>
+                <td colspan="3">
+                    <input type="text" id="salary" value="" style="width: 94%;">
+                </td>
+            </tr>
+            <!--            </div>-->
+
+        </table>
+        <div class="buttons">
+            <input value="修 改" type="button" class="reg_btn" id="submit">
+            <input value="返 回" type="button" class="reg_btn" id="cancel">
+        </div>
+    </form>
+</div>
+
+</body>
+<script>
+    let departmentList;
+    let postList;
+
+    window.onload = function () {
+        axios({
+            method: "post",
+            url: getProjectPath() + "/getDeptBox"
+        }).then(resp => {
+            departmentList = eval(resp.data);
+        })
+
+        axios({
+            method: "post",
+            url: getProjectPath() + "/getPostName"
+        }).then(function (resp) {
+            postList = eval(resp.data);
+        })
+
+        // 获取上个页面传来的id参数
+        let id = getParam("id");
+        axios({
+            method: "post",
+            url: getProjectPath() + "/empInfo",
+            params: {
+                'id': id
+            }
+        }).then(function (resp) {
+            showData(resp.data);
+            setAttr();
+        })
+    }
+
+    function getTitleName(id) {
+        let titleName;
+        $.ajax({
+            type: "post",
+            async: false,
+            url: getProjectPath() + "/getTitleName",
+            data: {
+                "id": id
+            },
+            success: function (resp) {
+                titleName = resp;
+            }
+        })
+
+        return titleName;
+    }
+
+    // 设置不可修改
+    function setAttr() {
+        $("#account").attr("disabled", "disabled");
+        $("#department").attr("disabled", "disabled");
+        $("#title").attr("disabled", "disabled");
+        $("#post").attr("disabled", "disabled");
+        $("#status").attr("disabled", "disabled");
+        $("#name").attr("disabled", "disabled");
+        $("#gender").attr("disabled", "disabled");
+        $("#pwd").attr("disabled", "disabled");
+        $("#age").attr("disabled", "disabled");
+        $("#politics").attr("disabled", "disabled");
+        $("#edu").attr("disabled", "disabled");
+        $("#salary").attr("disabled", "disabled");
+        $("#induction").attr("disabled", "disabled");
+        $("#school").attr("disabled", "disabled");
+        $("#tel").attr("disabled", "disabled");
+        $("#emil").attr("disabled", "disabled");
+        $("#address").attr("disabled", "disabled");
+    }
+
+    // 显示用户数据
+    function showData(data) {
+        document.getElementById("name").value = data["name"];
+        document.getElementById("gender").value = getGender(data["gender"]);
+        document.getElementById("account").value = data["account"];
+        document.getElementById("pwd").value = data["password"];
+        document.getElementById("age").value = data["age"];
+        document.getElementById("politics").value = getPolitics(data["politics"]);
+        document.getElementById("edu").value = getEduLevel(data["eduLevel"]);
+        document.getElementById("school").value = data["school"];
+        document.getElementById("induction").value = data["induction"];
+        document.getElementById("tel").value = data["telNum"];
+        document.getElementById("emil").value = data["emil"];
+        document.getElementById("address").value = data["pro"] + data["city"] + data["address"];
+        document.getElementById("department").value = getDept(data["deptId"]);
+        document.getElementById("title").value = getTitleName(data["titleId"]);
+        document.getElementById("post").value = getPost(data["postId"]);
+        document.getElementById("status").value = getStatus(data["status"]);
+        document.getElementById("salary").value = data["salary"];
+    }
+
+    let sub = document.getElementById("submit");
+    sub.onclick = editEmp;
+
+    function editEmp() {
+        let manager = localStorage.getItem("manager");
+        if(manager === "true") {
+            location.href = "addEmp.html?id=" + getParam("id");
+        } else {
+            alert("您不是管理员，不能进行修改");
+        }
+    }
+
+    document.getElementById("cancel").onclick = function () {
+        history.back();
+    }
+
+</script>
+</html>

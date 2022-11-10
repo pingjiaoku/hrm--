@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <title>人资管理</title>
+    <script src="js/jQuery.js"></script>
+    <script src="js/axios.js"></script>
+    <script src="js/public.js"></script>
+    <style>
+        /*下面的星号让素有元素内外边距都为0，不留空隙*/
+        * {
+            padding: 0px;
+            margin: 0px;
+            /*我们让整个屏幕都有一种淡淡的背景色*/
+        }
+
+        body {
+            background-color: lightcyan;
+        }
+
+
+        #logo {
+            height: 50px;
+            background-color: #a3d1d2;
+        }
+
+        #left {
+            display: inline-block;
+            width: 15%;
+            height: 91vh;
+            background-color: lightseagreen;
+        }
+
+        #main {
+            display: inline-block;
+            width: 85%;
+            height: 1000px;
+            background-color: lavender;
+            float: right;
+
+        }
+
+        #footer {
+            height: 40px;
+            background-color: darkgrey;
+
+        }
+
+        #firstName {
+            border-radius: 50%;
+            height: 25px;
+            width: 25px;
+            display: inline-block;
+            border-style: solid;
+            border-color: #464646;
+            vertical-align: top;
+        }
+
+        #firstName>*{
+            display: block;
+            height: 25px;
+            line-height: 25px;
+            text-align: center;
+            font-weight: bold
+        }
+    </style>
+</head>
+
+<body>
+<div id='box'>
+    <!-- 顶部导航 -->
+    <div id='logo'>
+        <img src="imgs/logo.png" width="40px" height="40px">
+        <span style="font-size:30px;margin-left:0px;font-weight: bold">人力资源管理系统</span>
+        <span id="rightInfo" style="position: absolute;right:2%;">
+            <span id="userFirstName"></span>
+            <span style="margin-right: 20px;"></span>
+            <span id="out">
+                <img src="imgs/out.png" width="30" height="30">
+            </span>
+        </span>
+
+    </div>
+
+    <!-- 左菜单 -->
+    <iframe id="left" src="left_menu.html" frameBorder="0"></iframe>
+
+    <!-- 信息页面 -->
+    <iframe id="main" src="welcome.html" frameBorder="0" name="right_workspace"></iframe>
+
+    <div id='footer'>
+        <span style='font-size:20px;margin-left:400px;'>页脚区域</span>
+    </div>
+</div>
+
+<script>
+
+    window.onload = function() {
+        let name = getParam("name");
+        let firstName = name.substr(0, 1);
+        // 显示登录用户名的姓
+
+        let strHTML =
+            '<a href="emp/empInfo.html?id='+getParam("id")+'" style="text-decoration : none" target="right_workspace">'+
+            '<span id="firstName"> <span id="user">'+firstName+'</span> </span> </a>';
+        document.getElementById("userFirstName").innerHTML = strHTML;
+    }
+
+    // 退出登录
+    let logout = document.getElementById("out");
+    logout.onclick = function () {
+        let b = confirm("确认退出吗");
+        if (b) {
+            location.href = "index.html";
+        }
+    }
+
+</script>
+</body>
+</html>

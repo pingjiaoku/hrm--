@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>添加新部门</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta http-equiv="Expires" content="0">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Cache-control" content="no-cache">
+    <link rel="stylesheet" href="../css/addEml.css">
+    <script src="../js/jQuery.js"></script>
+    <script src="../js/public.js"></script>
+    <script>
+        var listdata = {}
+        $(document).ready(function (){
+            $.post(getProjectPath() + "/getList",function (data) {//获取部门列表
+                listdata=eval(data)
+                fillParent(listdata)
+            })
+            $('#addDep').click(function () {//添加部门点击
+                if(checkInput()){//输入通过
+                    var tempUpload = {"depID":frm.id.value,"parentDepID":frm.parentId.value,"depName":frm.depName.value,"depType":frm.type.value,"depAddress":" ","depPostCode":" ","depPhoneNumber":" ","depTelePhone":" ","depEmail":" "}
+                    if(check(frm.address.value)){
+                        tempUpload.depAddress=frm.address.value;
+                    }
+                    if(check(frm.postCode.value)){
+                        tempUpload.depPostCode=frm.postCode.value;
+                    }
+                    if(check(frm.phone.value)){
+                        tempUpload.depPhoneNumber=frm.phone.value;
+                    }
+                    if(check(frm.telePhone.value)){
+                        tempUpload.depTelePhone=frm.telePhone.value;
+                    }
+                    if(check(frm.email.value)){
+                        tempUpload.depEmail=frm.email.value;
+                    }
+                    if(!check(frm.parentId.value)){
+                        tempUpload.parentDepID=0
+                    }
+                    $.post(getProjectPath() + "/addDep",tempUpload,function (data) {
+                        if(data != 0){//成功
+                            alert("添加成功")
+                            window.location.href="dep.html"
+                        }
+                        else {
+                            alert("添加失败")
+                        }
+                    })
+
+                }
+            })
+        })
+        function fillParent(data) {
+            for (let i=0;i<data.length;i++) {
+                $('#parentDep').append("<option value=" + data[i].depID + ">" + data[i].depName + "</option>")
+            }
+        }
+        function checkInput() {
+            if(frm.depName.value.length == 0){
+                alert("部门名称不能为空")
+                return false
+            }
+            if(frm.id.value.length == 0){
+                alert("部门编号不能为空")
+                return false
+            }
+            if(!(/(^[1-9]\d*$)/.test(frm.id.value))){
+                alert("编号应为正整数！");
+                return false
+            }
+
+            for(let i=0;i<listdata.length;i++){
+                if(listdata[i].depName==frm.depName.value){
+                    alert("已经存在该部门名称！")
+                    return false
+                }
+                if(listdata[i].depID==frm.id.value){
+                    alert("已经存在该部门编号！")
+                    return false
+                }
+            }
+            return true
+        }
+        function check(inputValue) {//检查长度
+            if(inputValue.length==0){
+                return false;
+            }
+            return true;
+        }
+
+    </script>
+</head>
+<body>
+<div class="form-div">
+<form name="frm">
+    &nbsp;&nbsp;&nbsp;部门编码：<input type="text" class="editInfo" name="id">
+    &nbsp;&nbsp;&nbsp;上级部门：
+    <select name="parentId" id="parentDep">
+        <option value="0">无上级部门</option>
+
+    </select>
+    <br>
+    &nbsp;&nbsp;&nbsp;部门名称：<input type="text" class="editInfo" name="depName">
+
+    &nbsp;&nbsp;&nbsp;部门类型：
+    <select name="type" id="select_type">
+        <option value='0'>生产部门</option>
+        <option value='1'>管理部门</option>
+    </select>
+    <br>
+    &nbsp;&nbsp;&nbsp;部门地址：<input type="text" class="editInfo" name="address">
+    &nbsp;&nbsp;&nbsp;邮政编码：<input type="text" class="editInfo" name="postCode">
+    <br>
+    &nbsp;&nbsp;&nbsp;&nbsp;电话号码：<input type="text" class="editInfo" name="phone">
+    &nbsp;&nbsp;&nbsp;传真号码：<input type="text" class="editInfo" name="telePhone">
+
+    <div style="text-align: left"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;电子邮件：<input type="text" class="editInfo" name="email" maxlength="7" style="width: 70%;text-align: left"></div>
+
+    <br>
+    <div class="buttons" style="text-align: center">
+        &nbsp;&nbsp;<input value="新建部门" type="button" class="reg_btn" id="addDep">
+
+    </div>
+</form>
+</div>
+</body>
+</html>

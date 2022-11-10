@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="../js/jQuery.js"></script>
+    <script src="../js/axios.js"></script>
+    <script src="../js/public.js"></script>
+    <link rel="stylesheet" href="../css/addPost.css">
+    <title>Title</title>
+</head>
+<body>
+<div class="form-div">
+    <form id="reg-form" action="#" method="post">
+        <table>
+            <tr>
+                <td class="litTit">查看岗位信息</td>
+            </tr>
+            <tr>
+                <td>岗位名称</td>
+                <td>
+                    <input type="text" name="name" id="name" value="" maxlength="15">
+                </td>
+            </tr>
+            <tr>
+                <td>所属部门</td>
+                <td>
+                    <!--<select name="department" id="department" size="1">
+                    </select>-->
+                    <input type="text" name="department" id="department" value="" maxlength="15">
+                </td>
+            </tr>
+            <tr>
+                <td>工作内容</td>
+                <td>
+                    <textarea cols="26" rows="5" class="textarea" id="content" name="content"></textarea>
+                </td>
+            </tr>
+            <tr>
+                <td>岗位需求</td>
+                <td>
+                    <textarea cols="26" rows="5" class="textarea" id="demand" name="demand"></textarea>
+                </td>
+            </tr>
+            <tr>
+                <td>备注</td>
+                <td>
+                    <textarea cols="26" rows="5" class="textarea" id="describe" name="describe"></textarea>
+                </td>
+            </tr>
+
+        </table>
+        <div class="buttons">
+            <input value="返 回" type="button" class="reg_btn" id="cancel">
+        </div>
+    </form>
+</div>
+<script>
+    window.onload = function () {
+        let id = getParam("id"); // 获取上个页面传递的url上的id参数
+
+        // 通过这个id在后端获取响应的岗位信息
+        axios({
+            method: "post",
+            url: getProjectPath() + "/postInfo",
+            params: {
+                "id": id
+            }
+        }).then(function (resp) {
+            WriteInfo(resp.data);// 将接受到的数据写入到输入框中
+        })
+    }
+
+    // 获取输入框对象
+    let name = document.getElementById("name");
+    let department = document.getElementById("department");
+    let content = document.getElementById("content");
+    let demand = document.getElementById("demand");
+    let describe = document.getElementById("describe");
+
+    document.getElementById("cancel").onclick = function() {
+        location.href = "postList.html";
+    }
+
+    // 将接受到的数据写入到输入框中
+    function WriteInfo(data) {
+        name.value = data["name"];
+        department.value = getDeptName(data["deptId"]);
+        content.value = data["content"];
+        demand.value = data["demand"];
+        describe.value = data["remark"];
+        setAttr(); // 设置输入框不可修改
+    }
+
+    // 设置不可修改
+    function setAttr() {
+        $("#name").attr("disabled", "disabled");
+        $("#department").attr("disabled", "disabled");
+        $("#content").attr("disabled", "disabled");
+        $("#demand").attr("disabled", "disabled");
+        $("#describe").attr("disabled", "disabled");
+    }
+
+    // 通过部门的id获取到对应部门的名字
+    function getDeptName(id) {
+        let name;
+        $.ajax({
+            type: "post",
+            async: false,
+            url: getProjectPath() + "/getDepName",
+            data: {"id": id},
+            success: function (resp) {
+                name = resp;
+            }
+        })
+
+        return name;
+    }
+
+
+</script>
+</body>
+</html>
